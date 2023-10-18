@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using static TagYouAreIt.Sphere;
 
 namespace TagYouAreIt
 {
@@ -18,6 +19,7 @@ namespace TagYouAreIt
         private List<Cube> cubes;
         private int taggedCount;
         private Vector3 spherePosition = Vector3.Zero;
+        private Sphere sphere;
 
         private Matrix world = Matrix.Identity;
         private Matrix projection = Matrix.Identity;
@@ -39,14 +41,6 @@ namespace TagYouAreIt
             cameraPosition = new Vector3(0, 40, 10);
             cameraLookAt = new Vector3(0, 0, 0);
 
-            cubes = new List<Cube>();
-            Random random = new Random();
-            for (int i = 0; i < 10; i++)
-            {
-                float x = (float)random.NextDouble() * 10 - 5;
-                float z = (float)random.NextDouble() * 10 - 5;
-                cubes.Add(new Cube(cubeModel, new Vector3(x, 0, z), spherePosition, cubes, taggedCount));
-            }
 
             base.Initialize();
         }
@@ -57,6 +51,27 @@ namespace TagYouAreIt
             sphereModel = Content.Load<Model>("Ball");
             cubeModel = Content.Load<Model>("Cube");
             spriteFont = Content.Load<SpriteFont>("Arial12");
+            sphere = new Sphere(sphereModel, spherePosition);
+
+
+
+
+            cubes = new List<Cube>();
+            Random random = new Random();
+
+            const float radius = 4.0f;
+
+            for (int i = 0; i < 10; i++)
+            {
+                float angle = (float)random.NextDouble() * MathHelper.TwoPi;
+
+                float x = radius * (float)Math.Cos(angle);
+                float z = radius * (float)Math.Sin(angle);
+
+                cubes.Add(new Cube(cubeModel, new Vector3(x, 0, z), spherePosition, cubes, taggedCount));
+            }
+
+
         }
 
         protected override void Update(GameTime gameTime)
@@ -90,27 +105,18 @@ namespace TagYouAreIt
             }
 
             base.Update(gameTime);
+            sphere.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Black);
 
-            foreach (ModelMesh mesh in sphereModel.Meshes)
-            {
-                foreach (BasicEffect effect in mesh.Effects)
-                {
-                    effect.World = Matrix.CreateTranslation(spherePosition);
-                    effect.View = Matrix.CreateLookAt(cameraPosition, cameraLookAt, Vector3.Up);
-                    effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45), graphics.GraphicsDevice.Viewport.AspectRatio, 1, 100);
-                    effect.DiffuseColor = Color.White.ToVector3();
-                }
-                mesh.Draw();
-            }
+            sphere.Draw(graphics.GraphicsDevice.Viewport.AspectRatio, cameraPosition, cameraLookAt);
 
             foreach (Cube cube in cubes)
             {
-                cube.Draw(cubeModel, cameraPosition, cameraLookAt);
+                cube.Draw(graphics.GraphicsDevice.Viewport.AspectRatio, cameraPosition, cameraLookAt);;
             }
 
             spriteBatch.Begin();

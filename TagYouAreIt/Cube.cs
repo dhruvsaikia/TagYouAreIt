@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing;
 
 namespace TagYouAreIt
 {
@@ -38,20 +39,17 @@ namespace TagYouAreIt
 
         public void Update(Vector3 spherePosition, GameTime gameTime)
         {
-            // Update cube position based on distance from the sphere
             float distance = Vector3.Distance(spherePosition, Position);
 
             if (distance < 10)
             {
-                // Move away from the sphere
                 Vector3 direction = Vector3.Normalize(Position - spherePosition);
-                Position += direction * 10 * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                Position += direction * 5 * (float)gameTime.ElapsedGameTime.TotalSeconds;
             }
             else if (distance > 11)
             {
-                // Move closer to the sphere
                 Vector3 direction = Vector3.Normalize(spherePosition - Position);
-                Position += direction * 10 * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                Position += direction * 5 * (float)gameTime.ElapsedGameTime.TotalSeconds;
             }
 
             Matrix world = Matrix.CreateWorld(Position, Vector3.Forward, Vector3.Up);
@@ -61,14 +59,16 @@ namespace TagYouAreIt
             Matrix worldViewProjection = world * view * projection;
         }
 
-        public void Draw(Model model, Vector3 cameraPosition, Vector3 cameraLookAt)
+        public void Draw(float aspectRatio, Vector3 cameraPosition, Vector3 cameraLookAt)
         {
             foreach (ModelMesh mesh in model.Meshes)
             {
                 foreach (BasicEffect effect in mesh.Effects)
                 {
-                    // Set World, View, Projection, and DiffuseColor as in the main Game class
-                    // Use Matrix.CreateLookAt to ensure cubes always face the sphere
+                    effect.World = Matrix.CreateTranslation(Position);
+                    effect.View = Matrix.CreateLookAt(cameraPosition, cameraLookAt, Vector3.Up);
+                    effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45), aspectRatio, 1, 100);
+                    effect.DiffuseColor = (Tagged) ? Microsoft.Xna.Framework.Color.Red.ToVector3() : Microsoft.Xna.Framework.Color.Green.ToVector3();
                 }
                 mesh.Draw();
             }
